@@ -1957,7 +1957,6 @@ function HotelBookingApp() {
       setIsLoading(true);
       setError(null);
 
-      // 注意：本番環境では、データ範囲をより具体的に指定することをお勧めします（例：'Sheet1!A:AE'）
       const hotelSheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet1!A:AE?key=${API_KEY}`;
       const promoSheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet2!A:A?key=${API_KEY}`;
 
@@ -1978,9 +1977,13 @@ function HotelBookingApp() {
         if (promoRes.ok) {
           const promoData = await promoRes.json();
           const promoJson = processSheetData(promoData.values);
+          // ===== ▼▼▼ 修正箇所 ▼▼▼ =====
+          // Sheet2から取得した画像URLを最初の3つに限定します。
           const imageUrls = promoJson
             .map((row) => row["首頁輪播圖片url"])
-            .filter(Boolean);
+            .filter(Boolean)
+            .slice(0, 3);
+          // ===== ▲▲▲ 修正箇所 ▲▲▲ =====
           setPromoImages(imageUrls);
         } else {
           console.warn(
@@ -1992,10 +1995,8 @@ function HotelBookingApp() {
           maxPrice = 0;
         const allAmenities = new Set();
 
-        // ===== ▼▼▼ ここからデータマッピングロジックです ▼▼▼ =====
         const formattedData = hotelJson.map((h, index) => {
           const id = parseInt(h.ID, 10) || index;
-          // 新しいデータ構造に合わせて、'價格1'を基本料金として使用します
           const priceJpy = parseInt(h["價格1"], 10) || 0;
 
           if (priceJpy < minPrice) minPrice = priceJpy;
@@ -2009,7 +2010,6 @@ function HotelBookingApp() {
             : [];
           amenities.forEach((a) => allAmenities.add(a));
 
-          // 新しいデータ構造に合わせて、'距離(KM)'を使用します
           const distance = parseFloat(h["距離(KM)"]);
 
           const rooms = [];
@@ -2028,7 +2028,7 @@ function HotelBookingApp() {
             id: id,
             destinationId: parseInt(h.目的地ID, 10),
             name: h.酒店標題,
-            type: h.酒店類型, // 新しいフィールド
+            type: h.酒店類型,
             star_rating: parseInt(h.星級, 10) || 3,
             rating_score: parseFloat(h.評分) || 7.0,
             review_count: parseInt(h.評論數, 10) || 0,
@@ -2044,13 +2044,12 @@ function HotelBookingApp() {
             poster_image_url: h.詳情圖集1,
             detail_image_1: h.詳情圖集2,
             detail_image_2: h.詳情圖集3,
-            price_jpy: priceJpy, // カード表示用の基本料金
+            price_jpy: priceJpy,
             amenities: amenities,
-            special_offer: h.特別優惠, // 新しいフィールド
+            special_offer: h.特別優惠,
             rooms: rooms,
           };
         });
-        // ===== ▲▲▲ ここまでがデータマッピングロジックです ▲▲▲ =====
 
         setAllHotels(formattedData);
         const priceRange = {
