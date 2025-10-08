@@ -10,7 +10,7 @@ import { ja } from "date-fns/locale";
 // ご自身のAPIキーを下の""の間に貼り付けてください
 const API_KEY = "AIzaSyCekunnrHWHLV92zrz51HvI2l-LDzbyqKw";
 // すべてのデータ（ホテル情報、プロモーション、詳細画像）を含むメインのシートID
-// ★ 修正済: あなたの旧コードのIDにタイポがありました（YNZ重複）。正: 下記ID
+// ★ 修正済: 正しいスプレッドシートID
 const SPREADSHEET_ID = "1-JYNZ9XSx2wAfBSOoKQHvAkilmGM3YYwjWIDvUb9mzw";
 
 // =======================================================================
@@ -352,7 +352,7 @@ function MainPage({
   );
 }
 
-// --- Filter/Booking/Review (保留簡易占位，與本需求無關) ---
+// --- Filter/Booking/Review (簡易プレースホルダー) ---
 const FilterModal = ({ onClose, onApply }) => (
   <div style={{ position: "fixed", zIndex: 3000, inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
     <div style={{ background: "white", padding: 20, borderRadius: 8 }}>
@@ -556,7 +556,7 @@ function HotelDetailView({ hotel, onClose }) {
           </div>
         </div>
 
-        {/* ★ 這裡是詳情頁內置的 VR 小板塊（必顯） ★ */}
+        {/* ★ 詳情頁內置的 VR 小板塊（與數據庫無關） ★ */}
         <VRQuickConnectCard onOpen={() => setVRModalOpen(true)} />
       </div>
 
@@ -564,7 +564,7 @@ function HotelDetailView({ hotel, onClose }) {
         <p>客室選択、施設詳細、アメニティ情報...</p>
       </div>
 
-      {/* 浮動 VR 按鈕（可要可不要；保留可提升可見性） */}
+      {/* 浮動 VR 按鈕（可選） */}
       <FloatingVRButton onClick={() => setVRModalOpen(true)} />
 
       {bookingRoom && <BookingModal room={bookingRoom} hotelName={hotel.name} onClose={() => setBookingRoom(null)} />}
@@ -580,7 +580,7 @@ function HotelDetailView({ hotel, onClose }) {
 // ===== 3. メインアプリケーション (Main Application) =====
 // =======================================================================
 
-function HotelBookingApp() {
+function HotelBookingPage() {
   const [allHotels, setAllHotels] = useState([]);
   const [displayHotels, setDisplayHotels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -771,5 +771,4 @@ function HotelBookingApp() {
   );
 }
 
-export default HotelBookingApp;
-
+export default HotelBookingPage;
