@@ -1,0 +1,23 @@
+/* 全局樣式重置和基礎設置 */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f4f6f8; /* 設置全局背景色 */
+}
+
+/* 讓地圖容器在渲染前有正確的高度 */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* 讓sticky-nav在滾動時有更好的效果 */
+.sticky-nav {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+}
