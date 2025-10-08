@@ -1958,7 +1958,7 @@ function HotelBookingApp() {
       setError(null);
 
       const hotelSheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet1!A:AE?key=${API_KEY}`;
-      const promoSheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet2!A:A?key=${API_KEY}`;
+      const promoSheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet2!B:B?key=${API_KEY}`;
 
       try {
         const [hotelRes, promoRes] = await Promise.all([
