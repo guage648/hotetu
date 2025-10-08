@@ -3,251 +3,13 @@ import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 
 // =======================================================================
-// ===== 導入您提供的工具函式與元件 =====
-// =======================================================================
-
-// 價格計算邏輯 (來自您提供的 src/utils/price.ts)
-const PRICE_FIELD_CANDIDATES = [
-  ["基礎價格(JPY)", "基础价格(JPY)"]
-];
-const ROOM_PRICE_FIELDS = [
-  ["價格1", "价格1"],
-  ["價格2", "价格2"],
-  ["價格3", "价格3"],
-];
-function pickFirstExistingKey(row: Record<string, any>, keys: string[]): string | null {
-  for (const k of keys) {
-    if (k in row && row[k] !== undefined && row[k] !== null && String(row[k]).trim() !== "") return k;
-  }
-  return null;
-}
-function toNumberStrict(v: unknown): number | null {
-  if (v === null || v === undefined) return null;
-  const s = String(v).trim();
-  if (!/^\d+(?:\.\d+)?$/.test(s)) return null;
-  const n = Number(s);
-  return Number.isFinite(n) ? n : null;
-}
-function computeDisplayBaseJPY(row: Record<string, any>): number | null {
-  for (const cand of PRICE_FIELD_CANDIDATES) {
-    const key = pickFirstExistingKey(row, cand);
-    if (key) {
-      const val = toNumberStrict(row[key]);
-      if (val !== null) return val;
-    }
-  }
-  const candidates: number[] = [];
-  for (const fields of ROOM_PRICE_FIELDS) {
-    const key = pickFirstExistingKey(row, fields);
-    if (key) {
-      const val = toNumberStrict(row[key]);
-      if (val !== null) candidates.push(val);
-    }
-  }
-  if (candidates.length === 0) return null;
-  return Math.min(...candidates);
-}
-function formatJPY(n: number | null): string {
-  if (n === null) return "—";
-  try {
-    return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(n) + '〜';
-  } catch {
-    return `¥${n.toLocaleString()}〜`;
-  }
-}
-
-
-// VR 看房元件 (來自您提供的 src/components/VRQuickConnect.tsx)
-function VRQuickConnect({
-  title = 'VR看房',
-  deviceName = 'PICO 3',
-  buttonText = 'VRで見る',
-  closeAfterMs = 3000,
-  onFinish,
-}: { title?: string, deviceName?: string, buttonText?: string, closeAfterMs?: number, onFinish?: () => void }) {
-    const [open, setOpen] = useState(false);
-    const [progress, setProgress] = useState(0);
-    const [step, setStep] = useState<0 | 1 | 2>(0);
-    const timerRef = useRef<number | null>(null);
-    const startRef = useRef<number>(0);
-
-    const openModal = () => {
-        setOpen(true);
-        setProgress(0);
-        setStep(0);
-        startRef.current = performance.now();
-    };
-
-    const closeModal = () => {
-        setOpen(false);
-        if (timerRef.current) {
-            window.clearInterval(timerRef.current);
-            timerRef.current = null;
-        }
-    };
-
-    useEffect(() => {
-        if (!open) return;
-        if (timerRef.current) window.clearInterval(timerRef.current);
-
-        const total = Math.max(1200, closeAfterMs);
-        const successHold = 350;
-        const progressDuration = total - successHold;
-
-        timerRef.current = window.setInterval(() => {
-            const elapsed = performance.now() - startRef.current;
-            const pct = Math.max(0, Math.min(100, Math.floor((elapsed / progressDuration) * 100)));
-            setProgress(pct);
-            if (pct < 40) setStep(0); else if (pct < 85) setStep(1); else setStep(2);
-
-            if (pct >= 100) {
-                if(timerRef.current) window.clearInterval(timerRef.current);
-                timerRef.current = null;
-                onFinish?.();
-                setTimeout(() => closeModal(), successHold);
-            }
-        }, 50);
-
-        return () => {
-            if (timerRef.current) window.clearInterval(timerRef.current);
-        };
-    }, [open, closeAfterMs, onFinish]);
-    
-    // ... (VRQuickConnect 的樣式和 JSX ... 省略以保持簡潔，請確保您檔案中有這部分)
-}
-
-
-// =======================================================================
-// ===== 1. データと設定 (Data & Settings) =====
-// =======================================================================
-const API_KEY = "YOUR_GOOGLE_API_KEY"; // 請務必替換成您的 API Key
-const SPREADSHEET_ID = "1-JYNZ9XSx2wAfBSOoKQHvAkilmGM3YYwjWIDvUb9mzw";
-
-// ... (其他設定如 DESTINATIONS, COLORS, Icon 元件等)
-
-// =======================================================================
-// ===== 3. メインアプリケーション (Main Application) =====
-// =======================================================================
-
-function HotelBookingApp() {
-    const [allHotels, setAllHotels] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            setIsLoading(true);
-            setError(null);
-            const hotelSheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet1!A:AH?key=${API_KEY}`;
-            try {
-                const res = await fetch(hotelSheetUrl);
-                if (!res.ok) throw new Error(`Google Sheets API 請求失敗 (Status: ${res.status})`);
-                
-                const data = await res.json();
-                const values = data.values;
-                if (!values || values.length < 2) throw new Error("工作表中沒有有效的資料");
-
-                const headers = values[0];
-                const rows = values.slice(1);
-
-                const formattedData = rows.map((row, index) => {
-                    const h: Record<string, any> = {};
-                    headers.forEach((header, i) => { h[header] = row[i]; });
-
-                    return {
-                        id: parseInt(h.ID, 10) || index,
-                        name: h.酒店標題,
-                        // ... 其他欄位 ...
-                        cover_image_url: h.封面圖,
-                        poster_image_url: h.詳情圖集1,
-                        detail_image_1: h.詳情圖集2,
-                        detail_image_2: h.詳情圖集3,
-                        address: h.詳細地址,
-                        raw: h, // ★★★ 將原始行數據傳遞給價格計算函式
-                    };
-                }).filter(h => h.name); // 過濾掉沒有名稱的空行
-
-                setAllHotels(formattedData);
-            } catch (err: any) {
-                setError(err.message);
-                console.error("資料獲取錯誤:", err);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchData();
-    }, []);
-
-    const selectedHotel = useMemo(() => allHotels.find((h) => h.id === selectedHotelId), [selectedHotelId, allHotels]);
-
-    // ... (HotelCard, HotelList, HotelDetailView 等元件定義)
-    
-    function HotelCard({ hotel, onSelect }: { hotel: any, onSelect: (id: number) => void }) {
-        // ★★★ 使用新的價格計算邏輯 ★★★
-        const displayPrice = formatJPY(computeDisplayBaseJPY(hotel.raw));
-        
-        return (
-            <div onClick={() => onSelect(hotel.id)} style={{ border: '1px solid #eee', borderRadius: 8, padding: 10, cursor: 'pointer' }}>
-                <img src={hotel.cover_image_url} alt={hotel.name} style={{ width: '100%', height: 150, objectFit: 'cover' }} />
-                <h4>{hotel.name}</h4>
-                <p style={{ fontWeight: 'bold', color: '#D32F2F' }}>{displayPrice}</p>
-            </div>
-        );
-    }
-
-    function HotelDetailView({ hotel, onClose }: { hotel: any, onClose: () => void }) {
-        return (
-            <div>
-                <button onClick={onClose}>← 返回</button>
-                <h2>{hotel.name}</h2>
-                <img src={hotel.poster_image_url} alt={hotel.name} style={{ width: '100%', maxWidth: 400 }}/>
-                <p>{hotel.address}</p>
-                
-                {/* ★★★ 在詳情頁中插入 VR 看房元件 ★★★ */}
-                <VRQuickConnect />
-
-            </div>
-        );
-    }
-
-    if (isLoading) return <div>載入中...</div>;
-    if (error) return <div>錯誤: {error}</div>;
-
-    return (
-        <div>
-            {selectedHotel ? (
-                <HotelDetailView hotel={selectedHotel} onClose={() => setSelectedHotelId(null)} />
-            ) : (
-                <div>
-                    <h1>飯店列表</h1>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '16px' }}>
-                        {allHotels.map(hotel => (
-                            <HotelCard key={hotel.id} hotel={hotel} onSelect={setSelectedHotelId} />
-                        ))}
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-}
-
-export default HotelBookingApp;import React, { useEffect, useMemo, useState, useRef } from "react";
-// date-fnsライブラリがインストールされていることを確認してください: npm install date-fns
-import { format } from "date-fns";
-import { ja } from "date-fns/locale";
-
-// =======================================================================
 // ===== 1. データと設定 (Data & Settings) =====
 // =======================================================================
 
 // ご自身のAPIキーを下の""の間に貼り付けてください
 const API_KEY = "AIzaSyCekunnrHWHLV92zrz51HvI2l-LDzbyqKw";
 // すべてのデータ（ホテル情報、プロモーション、詳細画像）を含むメインのシートID
-// ★ 修正済: 正しいスプレッドシートID
 const SPREADSHEET_ID = "1-JYNZ9XSx2wAfBSOoKQHvAkilmGM3YYwjWIDvUb9mzw";
-
-// =======================================================================
 
 const DESTINATIONS = [
   { id: 0, name: "すべて" },
@@ -306,7 +68,7 @@ const Icon = ({ name, size = 20, className = "", style = {} }) => {
   );
 };
 
-// ====== 價格嚴格數值化（只允許純數字，"2泊以上" 等直接丟棄） ======
+// ====== 價格嚴格數值化（只允許純數字） ======
 const toNumberStrict = (v) => {
   if (v == null) return null;
   const s = String(v).trim();
@@ -776,7 +538,7 @@ function HotelDetailView({ hotel, onClose }) {
       <ImageGallery />
 
       <div style={{ padding: "0 16px", display: "flex", flexDirection: "column", gap: "16px", marginBottom: "16px" }}>
-        {/* 酒店信息卡 */}
+        {/* 酒店情報 + ナビ */}
         <div style={{ background: COLORS.card, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px" }}>
           <div style={{ flex: 1, paddingRight: "16px", overflow: "hidden" }}>
             <h3 style={{ margin: "0 0 4px 0", fontSize: "1.1rem", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>{hotel.name}</h3>
@@ -790,7 +552,7 @@ function HotelDetailView({ hotel, onClose }) {
           </div>
         </div>
 
-        {/* ★ 詳情頁內置的 VR 小板塊（與數據庫無關） ★ */}
+        {/* ★ 詳情頁內置的 VR 小板塊（與數據庫無關） */}
         <VRQuickConnectCard onOpen={() => setVRModalOpen(true)} />
       </div>
 
@@ -814,7 +576,7 @@ function HotelDetailView({ hotel, onClose }) {
 // ===== 3. メインアプリケーション (Main Application) =====
 // =======================================================================
 
-function HotelBookingPage() {
+function HotelBookingApp() {
   const [allHotels, setAllHotels] = useState([]);
   const [displayHotels, setDisplayHotels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -922,7 +684,7 @@ function HotelBookingPage() {
               detail_image_1: h.詳情圖集2,
               detail_image_2: h.詳情圖集3,
               amenities,
-              price_jpy: price1, // ★ 唯一價格來源
+              price_jpy: price1, // ★ 唯一價格來源（已修復）
               rooms,
             };
           })
@@ -997,7 +759,6 @@ function HotelBookingPage() {
           {...{
             onClose: () => setShowFilters(false),
             onApply: () => setShowFilters(false),
-            filters, setFilters, priceBounds, availableAmenities, guestCount, onGuestChange: setGuestCount,
           }}
         />
       )}
@@ -1005,4 +766,4 @@ function HotelBookingPage() {
   );
 }
 
-export default HotelBookingPage;
+export default HotelBookingApp;
