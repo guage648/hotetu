@@ -7,13 +7,12 @@ import { ja } from "date-fns/locale";
 // ===== 1. データと設定 (Data & Settings) =====
 // =======================================================================
 
-// ✨ 最終修正：APIキーと単一のスプレッドシートIDに修正しました
-// =================================================================
 // ご自身のAPIキーを下の""の間に貼り付けてください
 const API_KEY = "AIzaSyCekunnrHWHLV92zrz51HvI2l-LDzbyqKw";
 // すべてのデータ（ホテル情報、プロモーション、詳細画像）を含むメインのシートID
 const SPREADSHEET_ID = "1-JYNZ9XSx2wAfBSOoKQHvAkilmGM3YYwjWIDvUb9mzw";
-// =================================================================
+
+// =======================================================================
 
 const DESTINATIONS = [
   { id: 0, name: "すべて" },
@@ -109,7 +108,6 @@ const Icon = ({ name, size = 20, className = "", style = {} }) => {
       <path d="M21 5V3H3v2l8 9v5H6v2h12v-2h-5v-5l8-9zM7.43 7L5.66 5h12.69l-1.78 2H7.43z" />
     ),
     navigation: <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" />,
-    // ✨ 新增：VR 圖標
     vr: (
       <path d="M20.59 6.21C19.82 5.45 18.72 5 17.5 5H10c-1.22 0-2.32.45-3.09 1.21L5.5 7.62l1.41 1.41L8.32 7.62c.4-.4 1-.62 1.68-.62h7.5c.68 0 1.28.22 1.68.62l1.41 1.41 1.41-1.41-1.41-1.41zM18 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zM6 10.5c-.83 0-1.5.67-1.5 1.5S5.17 13.5 6 13.5s1.5-.67 1.5-1.5S6.83 10.5 6 10.5zM21 15.58c-1.11-1.11-2.69-1.58-4.24-1.58H7.24c-1.55 0-3.13.47-4.24 1.58L3 15.58V18h18v-2.42l-.01.01z" />
     ),
@@ -165,7 +163,6 @@ const Icon = ({ name, size = 20, className = "", style = {} }) => {
   );
 };
 
-// ... (其他組件 SearchBar, PromoCarousel 等保持不變)
 function SearchBar({ hotels, onSelectHotel }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
@@ -274,6 +271,7 @@ function SearchBar({ hotels, onSelectHotel }) {
     </div>
   );
 }
+
 function PromoCarousel({ images }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   useEffect(() => {
@@ -358,6 +356,7 @@ function PromoCarousel({ images }) {
     </div>
   );
 }
+
 function FunctionButtons() {
   const buttons = [
     { label: "ブティック", icon: "boutique" },
@@ -399,6 +398,7 @@ function FunctionButtons() {
     </div>
   );
 }
+
 function BookingCriteriaBar({ startDate, setStartDate, endDate, setEndDate }) {
   const handleStartDateChange = (e) => {
     const newStartDate = new Date(e.target.value);
@@ -472,6 +472,7 @@ function BookingCriteriaBar({ startDate, setStartDate, endDate, setEndDate }) {
     </div>
   );
 }
+
 function SortAndFilterBar({ sort, setSort, onShowFilters }) {
   return (
     <div
@@ -520,6 +521,7 @@ function SortAndFilterBar({ sort, setSort, onShowFilters }) {
     </div>
   );
 }
+
 function DestinationFilter({ selectedId, onSelect }) {
   return (
     <div
@@ -555,6 +557,7 @@ function DestinationFilter({ selectedId, onSelect }) {
     </div>
   );
 }
+
 function HotelCard({ hotel, onSelect }) {
   return (
     <div
@@ -643,6 +646,7 @@ function HotelCard({ hotel, onSelect }) {
     </div>
   );
 }
+
 function HotelList({ hotels, onSelect }) {
   if (hotels.length === 0) {
     return (
@@ -674,6 +678,7 @@ function HotelList({ hotels, onSelect }) {
     </div>
   );
 }
+
 function MainPage({
   allHotels,
   displayHotels,
@@ -722,6 +727,7 @@ function MainPage({
     </main>
   );
 }
+
 function FilterModal({
   onClose,
   onApply,
@@ -974,6 +980,7 @@ function FilterModal({
     </div>
   );
 }
+
 function BookingModal({ room, hotelName, onClose }) {
   const [step, setStep] = useState(1);
   const [guestName, setGuestName] = useState("");
@@ -1150,6 +1157,7 @@ function BookingModal({ room, hotelName, onClose }) {
     </div>
   );
 }
+
 const generateFakeReviews = (count, averageRating) => {
   const usernames = [
     "Kenji S.",
@@ -1219,6 +1227,7 @@ const generateFakeReviews = (count, averageRating) => {
   }
   return reviews.sort((a, b) => b.date - a.date);
 };
+
 function ReviewModal({ hotel, onClose }) {
   const reviews = useMemo(
     () => generateFakeReviews(hotel.review_count, hotel.rating_score),
@@ -1381,7 +1390,6 @@ function ReviewModal({ hotel, onClose }) {
   );
 }
 
-// ✨ 新增：VR 連接動畫彈窗組件
 function VRConnectionModal({ onClose }) {
   const [status, setStatus] = useState("searching"); // 'searching', 'connecting', 'success'
 
@@ -1458,13 +1466,10 @@ function VRConnectionModal({ onClose }) {
   );
 }
 
-// =======================================================================
-// ===== ✨ 4. 程式碼修改區域 (Code Modification Area) ✨ =====
-// =======================================================================
 function HotelDetailView({ hotel, onClose }) {
   const [bookingRoom, setBookingRoom] = useState(null);
   const [isReviewModalOpen, setReviewModalOpen] = useState(false);
-  const [isVRModalOpen, setVRModalOpen] = useState(false); // ✨ 新增：VR 彈窗狀態
+  const [isVRModalOpen, setVRModalOpen] = useState(false);
 
   if (!hotel) return null;
 
@@ -1601,6 +1606,7 @@ function HotelDetailView({ hotel, onClose }) {
           display: "flex",
           flexDirection: "column",
           gap: "16px",
+          marginBottom: "16px",
         }}
       >
         <div
@@ -1613,8 +1619,16 @@ function HotelDetailView({ hotel, onClose }) {
             padding: "16px",
           }}
         >
-          <div style={{ flex: 1, paddingRight: "16px" }}>
-            <h3 style={{ margin: "0 0 4px 0", fontSize: "1.1rem" }}>
+          <div style={{ flex: 1, paddingRight: "16px", overflow: "hidden" }}>
+            <h3
+              style={{
+                margin: "0 0 4px 0",
+                fontSize: "1.1rem",
+                whiteSpace: "nowrap",
+                textOverflow: "ellipsis",
+                overflow: "hidden",
+              }}
+            >
               {hotel.name}
             </h3>
             <p
@@ -1666,7 +1680,6 @@ function HotelDetailView({ hotel, onClose }) {
           </div>
         </div>
 
-        {/* ✨ 新增：VR看房卡片 */}
         <div
           onClick={() => setVRModalOpen(true)}
           style={{
@@ -1707,7 +1720,7 @@ function HotelDetailView({ hotel, onClose }) {
         </div>
       </div>
 
-      <div style={{ padding: "16px 16px 16px 16px" }}>
+      <div style={{ padding: "0 16px 16px 16px" }}>
         <h3 style={{ margin: "16px 0 12px 0" }}>部屋タイプを選択</h3>
         <div
           style={{
@@ -1753,7 +1766,8 @@ function HotelDetailView({ hotel, onClose }) {
                   >
                     {room.price.toLocaleString()}円{" "}
                     <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>
-                      / 泊
+                      {" "}
+                      / 泊{" "}
                     </span>
                   </div>
                 </div>
@@ -1807,10 +1821,12 @@ function HotelDetailView({ hotel, onClose }) {
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <Icon name="star" size={20} style={{ color: COLORS.star }} />
               <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                {hotel.rating_score}
+                {" "}
+                {hotel.rating_score}{" "}
               </span>
               <span style={{ color: COLORS.textSecondary }}>
-                ({hotel.review_count}件のレビュー)
+                {" "}
+                ({hotel.review_count}件のレビュー){" "}
               </span>
             </div>
             <button
@@ -1877,7 +1893,6 @@ function HotelDetailView({ hotel, onClose }) {
       {isReviewModalOpen && (
         <ReviewModal hotel={hotel} onClose={() => setReviewModalOpen(false)} />
       )}
-      {/* ✨ 新增：渲染 VR 彈窗 */}
       {isVRModalOpen && (
         <VRConnectionModal onClose={() => setVRModalOpen(false)} />
       )}
@@ -1888,9 +1903,11 @@ function HotelDetailView({ hotel, onClose }) {
     </div>
   );
 }
+
 // =======================================================================
-// ===== 5. メインアプリケーション (Main Application) =====
+// ===== 3. メインアプリケーション (Main Application) =====
 // =======================================================================
+
 function HotelBookingApp() {
   const [allHotels, setAllHotels] = useState([]);
   const [displayHotels, setDisplayHotels] = useState([]);
@@ -1932,7 +1949,6 @@ function HotelBookingApp() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // APIキーが未入力の場合に明確なエラーを表示
       if (!API_KEY || API_KEY.includes("ここに") || API_KEY.includes("YOUR")) {
         setError("エラー: コードに有効なGoogle APIキーを設定してください。");
         setIsLoading(false);
@@ -1941,8 +1957,6 @@ function HotelBookingApp() {
       setIsLoading(true);
       setError(null);
 
-      // ✨ 修正：すべてのデータを単一のスプレッドシートから取得
-      // 修正点：'Sheet1' から 'Sheet1!A:AD' に変更し、全行を確実に読み込む
       const hotelSheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet1!A:AD?key=${API_KEY}`;
       const promoSheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet2!A:A?key=${API_KEY}`;
 
@@ -1960,11 +1974,9 @@ function HotelBookingApp() {
         const hotelData = await hotelRes.json();
         const hotelJson = processSheetData(hotelData.values);
 
-        // プロモーション画像の処理は失敗しても続行
         if (promoRes.ok) {
           const promoData = await promoRes.json();
           const promoJson = processSheetData(promoData.values);
-          // '首图横插图url' カラムからURLを正しく取得
           const imageUrls = promoJson
             .map((row) => row["首頁輪播圖片url"])
             .filter(Boolean);
@@ -2006,7 +2018,6 @@ function HotelBookingApp() {
             }
           }
 
-          // ✨ 修正：すべての画像を同じメインシートの行(h)から正しくマッピング
           return {
             id: id,
             destinationId: parseInt(h.目的地ID, 10),
