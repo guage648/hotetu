@@ -10,7 +10,7 @@ import { ja } from "date-fns/locale";
 // ご自身のAPIキーを下の""の間に貼り付けてください
 const API_KEY = "AIzaSyCekunnrHWHLV92zrz51HvI2l-LDzbyqKw";
 // すべてのデータ（ホテル情報、プロモーション、詳細画像）を含むメインのシートID
-// ※ あなたのコードにあったIDにタイポ(YNZの重複)があったので修正しました
+// ★ 修正：あなたのコードのIDに「YNZ」が重複していたので正しいIDに修正
 const SPREADSHEET_ID = "1-JYNZ9XSx2wAfBSOoKQHvAkilmGM3YYwjWIDvUb9mzw";
 
 // =======================================================================
@@ -72,7 +72,7 @@ const Icon = ({ name, size = 20, className = "", style = {} }) => {
   );
 };
 
-// ====== 小ヘルパー：厳格数値化（数字のみ許容、"2泊以上"等はnullに） ======
+// ====== 價格嚴格數值化（只允許純數字，"2泊以上" 等直接丟棄） ======
 const toNumberStrict = (v) => {
   if (v == null) return null;
   const s = String(v).trim();
@@ -81,7 +81,7 @@ const toNumberStrict = (v) => {
   return Number.isFinite(n) ? n : null;
 };
 
-// ====== SearchBar / PromoCarousel / FunctionButtons / BookingCriteriaBar / SortAndFilterBar / DestinationFilter はそのまま ======
+// ... SearchBar / PromoCarousel / FunctionButtons / BookingCriteriaBar / SortAndFilterBar / DestinationFilter (保持你原樣) ...
 function SearchBar({ hotels, onSelectHotel }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
@@ -263,8 +263,6 @@ function DestinationFilter({ selectedId, onSelect }) {
     </div>
   );
 }
-
-// ======= 価格表示カード（そのまま / 下で price_jpy を修正して供給） =======
 function HotelCard({ hotel, onSelect }) {
   return (
     <div
@@ -288,23 +286,66 @@ function HotelCard({ hotel, onSelect }) {
           backgroundColor: COLORS.cardBorder,
         }}
       />
-      <div style={{ padding: "8px", flex: 1, display: "flex", flexDirection: "column" }}>
-        <h3 style={{ fontSize: "0.9rem", fontWeight: "600", margin: "0 0 4px 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+      <div
+        style={{
+          padding: "8px",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <h3
+          style={{
+            fontSize: "0.9rem",
+            fontWeight: "600",
+            margin: "0 0 4px 0",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
           {hotel.name}
         </h3>
-        <div style={{ fontSize: "0.75rem", color: COLORS.textSecondary, margin: "2px 0" }}>
+        <div
+          style={{
+            fontSize: "0.75rem",
+            color: COLORS.textSecondary,
+            margin: "2px 0",
+          }}
+        >
           {hotel.distance_text}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 4, margin: "4px 0" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            margin: "4px 0",
+          }}
+        >
           <Icon name="star" size={14} style={{ color: COLORS.star }} />{" "}
-          <span style={{ fontWeight: "bold", fontSize: "0.8rem" }}>{hotel.rating_score}</span>{" "}
-          <span style={{ fontSize: "0.7rem", color: COLORS.textSecondary }}>({hotel.review_count}件)</span>
+          <span style={{ fontWeight: "bold", fontSize: "0.8rem" }}>
+            {hotel.rating_score}
+          </span>{" "}
+          <span style={{ fontSize: "0.7rem", color: COLORS.textSecondary }}>
+            ({hotel.review_count}件)
+          </span>
         </div>
-        <div style={{ textAlign: "left", marginTop: "auto", paddingTop: "4px" }}>
-          <span style={{ fontSize: "1rem", fontWeight: "bold", color: COLORS.accent }}>
+        <div
+          style={{ textAlign: "left", marginTop: "auto", paddingTop: "4px" }}
+        >
+          <span
+            style={{
+              fontSize: "1rem",
+              fontWeight: "bold",
+              color: COLORS.accent,
+            }}
+          >
             {Number(hotel.price_jpy || 0).toLocaleString()}円
           </span>{" "}
-          <span style={{ fontSize: "0.7rem", color: COLORS.textSecondary }}>/泊~</span>
+          <span style={{ fontSize: "0.7rem", color: COLORS.textSecondary }}>
+            /泊~
+          </span>
         </div>
       </div>
     </div>
@@ -312,53 +353,156 @@ function HotelCard({ hotel, onSelect }) {
 }
 function HotelList({ hotels, onSelect }) {
   if (hotels.length === 0) {
-    return <div style={{ textAlign: "center", padding: "40px 0", color: COLORS.textSecondary }}>条件に合うホテルが見つかりませんでした。</div>;
+    return (
+      <div
+        style={{
+          textAlign: "center",
+          padding: "40px 0",
+          color: COLORS.textSecondary,
+        }}
+      >
+        条件に合うホテルが見つかりませんでした。
+      </div>
+    );
   }
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px" }}>
-      {hotels.map((hotel) => hotel && <HotelCard key={hotel.id} hotel={hotel} onSelect={onSelect} />)}
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+        gap: "12px",
+      }}
+    >
+      {hotels.map(
+        (hotel) =>
+          hotel && (
+            <HotelCard key={hotel.id} hotel={hotel} onSelect={onSelect} />
+          )
+      )}
     </div>
   );
 }
 function MainPage({
-  allHotels, displayHotels, onSelectHotel, onShowFilters, sort, setSort,
-  selectedDestinationId, onDestinationChange, promoImages, startDate, setStartDate, endDate, setEndDate,
+  allHotels,
+  displayHotels,
+  onSelectHotel,
+  onShowFilters,
+  sort,
+  setSort,
+  selectedDestinationId,
+  onDestinationChange,
+  promoImages,
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
 }) {
   return (
-    <main style={{ maxWidth: 1200, margin: "0 auto", padding: "0 0 16px 0", animation: "fadeIn 0.5s" }}>
+    <main
+      style={{
+        maxWidth: 1200,
+        margin: "0 auto",
+        padding: "0 0 16px 0",
+        animation: "fadeIn 0.5s",
+      }}
+    >
       <SearchBar hotels={allHotels} onSelectHotel={onSelectHotel} />
       <PromoCarousel images={promoImages} />
       <div style={{ padding: "0 16px" }}>
         <FunctionButtons />
-        <BookingCriteriaBar startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate} />
-        <DestinationFilter selectedId={selectedDestinationId} onSelect={onDestinationChange} />
-        <SortAndFilterBar sort={sort} setSort={setSort} onShowFilters={onShowFilters} />
+        <BookingCriteriaBar
+          startDate={startDate}
+          setStartDate={setStartDate}
+          endDate={endDate}
+          setEndDate={setEndDate}
+        />
+        <DestinationFilter
+          selectedId={selectedDestinationId}
+          onSelect={onDestinationChange}
+        />
+        <SortAndFilterBar
+          sort={sort}
+          setSort={setSort}
+          onShowFilters={onShowFilters}
+        />
         <HotelList hotels={displayHotels} onSelect={onSelectHotel} />
       </div>
     </main>
   );
 }
 
-const FilterModal = ({ onClose, onApply }) => (
-  <div style={{ position: "fixed", zIndex: 3000, inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-    <div style={{ background: "white", padding: 20, borderRadius: 8 }}>
-      Filter Modal<button onClick={onApply}>Apply</button>
-      <button onClick={onClose}>Close</button>
+const FilterModal = ({ onClose, onApply }) => {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        zIndex: 3000,
+        inset: 0,
+        background: "rgba(0,0,0,0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <div style={{ background: "white", padding: 20, borderRadius: 8 }}>
+        Filter Modal<button onClick={onApply}>Apply</button>
+        <button onClick={onClose}>Close</button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
+const BookingModal = ({ room, hotelName, onClose }) => {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        zIndex: 2000,
+        inset: 0,
+        background: "rgba(0,0,0,0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <div style={{ background: "white", padding: 20, borderRadius: 8 }}>
+        Booking Modal for {room.name}
+        <button onClick={onClose}>Close</button>
+      </div>
+    </div>
+  );
+};
+const ReviewModal = ({ hotel, onClose }) => {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        zIndex: 2000,
+        inset: 0,
+        background: "rgba(0,0,0,0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <div style={{ background: "white", padding: 20, borderRadius: 8 }}>
+        Review Modal for {hotel.name}
+        <button onClick={onClose}>Close</button>
+      </div>
+    </div>
+  );
+};
 
-// ====== ★★★ VR 接続モーダル：検索→接続→成功（3秒で自動クローズ） ★★★ ======
+// ===== ★★★ VR 接続モーダル：検索→接続→成功（自動で約3秒後に閉じる） ★★★
 const VRConnectionModal = ({ onClose }) => {
   const [progress, setProgress] = useState(0); // 0~100
-  const [step, setStep] = useState(0); // 0: 検索, 1: 接続, 2: 成功
+  const [step, setStep] = useState(0);         // 0: 検索, 1: 接続, 2: 成功
   const timerRef = useRef(null);
   const startRef = useRef(0);
 
   useEffect(() => {
     startRef.current = performance.now();
-    const total = 3000;          // 全体約3秒
-    const successHold = 400;     // 成功表示を少し見せてから閉じる
+    const total = 3000;      // 全体 ~3s
+    const successHold = 350; // 成功表示を少し見せてから閉じる
     const progressDuration = total - successHold;
 
     timerRef.current = setInterval(() => {
@@ -381,12 +525,41 @@ const VRConnectionModal = ({ onClose }) => {
   const now = () => new Date().toLocaleTimeString([], { hour12: false });
 
   return (
-    <div style={{ position: "fixed", zIndex: 10001, inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ background: "white", color: "black", padding: "20px 24px", borderRadius: 12, textAlign: "left", width: "min(480px, 92vw)" }}>
+    <div
+      style={{
+        position: "fixed",
+        zIndex: 10001,
+        inset: 0,
+        background: "rgba(0,0,0,0.7)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        style={{
+          background: "white",
+          color: "black",
+          padding: "20px 24px",
+          borderRadius: 12,
+          textAlign: "left",
+          width: "min(480px, 92vw)",
+        }}
+      >
         <h3 style={{ margin: 0, fontSize: "1.1rem" }}>VR接続</h3>
-        <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>デバイス: <b>PICO 3</b></div>
+        <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 8 }}>
+          デバイス: <b>PICO 3</b>
+        </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 14, margin: "8px 0 6px" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            fontSize: 14,
+            margin: "8px 0 6px",
+          }}
+        >
           <div style={{ color: "#6b7280" }}>状態</div>
           <div style={{ fontWeight: 700 }}>
             {step === 0 && "デバイス検索中…"}
@@ -395,14 +568,45 @@ const VRConnectionModal = ({ onClose }) => {
           </div>
         </div>
 
-        <div style={{ width: "100%", height: 10, background: "#f3f4f6", borderRadius: 999, overflow: "hidden", border: "1px solid #e5e7eb" }}>
-          <div style={{ width: `${progress}%`, height: "100%", background: "linear-gradient(90deg,#111,#444)", transition: "width 120ms ease-out" }} />
+        <div
+          style={{
+            width: "100%",
+            height: 10,
+            background: "#f3f4f6",
+            borderRadius: 999,
+            overflow: "hidden",
+            border: "1px solid #e5e7eb",
+          }}
+        >
+          <div
+            style={{
+              width: `${progress}%`,
+              height: "100%",
+              background: "linear-gradient(90deg,#111,#444)",
+              transition: "width 120ms ease-out",
+            }}
+          />
         </div>
-        <div style={{ textAlign: "right", fontSize: 12, color: "#6b7280" }}>{progress}%</div>
+        <div style={{ textAlign: "right", fontSize: 12, color: "#6b7280" }}>
+          {progress}%
+        </div>
 
-        <div style={{ marginTop: 10, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", background: "#0b1020", color: "#c9e9ff", borderRadius: 8, border: "1px solid #0f1b33", padding: 10, height: 120, overflow: "auto", fontSize: 12 }}>
+        <div
+          style={{
+            marginTop: 10,
+            fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+            background: "#0b1020",
+            color: "#c9e9ff",
+            borderRadius: 8,
+            border: "1px solid #0f1b33",
+            padding: 10,
+            height: 120,
+            overflow: "auto",
+            fontSize: 12,
+          }}
+        >
           <div>{now()}  Bluetooth/Wi-Fi デバイスをスキャン中…</div>
-          {step >= 0 && <div>{now()}  発見: PICO 3 • RSSI -58dBm</div>}
+          <div>{now()}  発見: PICO 3 • RSSI -58dBm</div>
           {step >= 1 && (
             <>
               <div>{now()}  セキュアチャネル(TLS)を確立中…</div>
@@ -419,7 +623,18 @@ const VRConnectionModal = ({ onClose }) => {
         </div>
 
         <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
-          <button onClick={onClose} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#f3f4f6", cursor: "pointer" }}>閉じる</button>
+          <button
+            onClick={onClose}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 8,
+              border: "1px solid #e5e7eb",
+              background: "#f3f4f6",
+              cursor: "pointer",
+            }}
+          >
+            閉じる
+          </button>
         </div>
       </div>
     </div>
@@ -427,19 +642,31 @@ const VRConnectionModal = ({ onClose }) => {
 };
 
 // ===== フローティングVRボタン =====
-const FloatingVRButton = ({ onClick }) => (
-  <div
-    onClick={onClick}
-    style={{
-      position: "fixed", bottom: "30px", right: "30px", zIndex: 10000,
-      background: COLORS.gradient, width: "60px", height: "60px", borderRadius: "50%",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      boxShadow: "0 4px 15px rgba(0,0,0,0.3)", cursor: "pointer", color: "white",
-    }}
-  >
-    <Icon name="vr" size={32} />
-  </div>
-);
+const FloatingVRButton = ({ onClick }) => {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        position: "fixed",
+        bottom: "30px",
+        right: "30px",
+        zIndex: 10000,
+        background: COLORS.gradient,
+        width: "60px",
+        height: "60px",
+        borderRadius: "50%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
+        cursor: "pointer",
+        color: "white",
+      }}
+    >
+      <Icon name="vr" size={32} />
+    </div>
+  );
+};
 
 // ===== ホテル詳細ページ =====
 function HotelDetailView({ hotel, onClose }) {
@@ -455,44 +682,184 @@ function HotelDetailView({ hotel, onClose }) {
     window.open(`https://www.google.com/maps?q=${lat},${lon}`, "_blank");
   };
 
-  const ImageWithFallback = ({ src, alt, style }) => (src ? <img src={src} alt={alt} style={style} /> : <div style={{ ...style, backgroundColor: COLORS.cardBorder }} />);
+  const ImageWithFallback = ({ src, alt, style }) =>
+    src ? (
+      <img src={src} alt={alt} style={style} />
+    ) : (
+      <div style={{ ...style, backgroundColor: COLORS.cardBorder }} />
+    );
 
   const ImageGallery = () => (
-    <div style={{ display: "flex", gap: "8px", height: "250px", padding: "16px" }}>
+    <div
+      style={{ display: "flex", gap: "8px", height: "250px", padding: "16px" }}
+    >
       <div style={{ flex: 2, height: "100%" }}>
-        <ImageWithFallback src={hotel.poster_image_url} alt={`${hotel.name} メインビュー`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "12px" }} />
+        <ImageWithFallback
+          src={hotel.poster_image_url}
+          alt={`${hotel.name} メインビュー`}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            borderRadius: "12px",
+          }}
+        />
       </div>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px", height: "100%" }}>
-        <ImageWithFallback src={hotel.detail_image_1} alt={`${hotel.name} 詳細ビュー1`} style={{ width: "100%", height: "50%", objectFit: "cover", borderRadius: "12px" }} />
-        <ImageWithFallback src={hotel.detail_image_2} alt={`${hotel.name} 詳細ビュー2`} style={{ width: "100%", height: "50%", objectFit: "cover", borderRadius: "12px" }} />
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
+          height: "100%",
+        }}
+      >
+        <ImageWithFallback
+          src={hotel.detail_image_1}
+          alt={`${hotel.name} 詳細ビュー1`}
+          style={{
+            width: "100%",
+            height: "50%",
+            objectFit: "cover",
+            borderRadius: "12px",
+          }}
+        />
+        <ImageWithFallback
+          src={hotel.detail_image_2}
+          alt={`${hotel.name} 詳細ビュー2`}
+          style={{
+            width: "100%",
+            height: "50%",
+            objectFit: "cover",
+            borderRadius: "12px",
+          }}
+        />
       </div>
     </div>
   );
 
   return (
-    <div style={{ background: COLORS.bg, minHeight: "100vh", animation: "slideInUp 0.3s" }}>
-      <header style={{ position: "sticky", top: 0, zIndex: 10, background: "rgba(255,255,255,0.8)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", padding: "12px", borderBottom: `1px solid ${COLORS.cardBorder}` }}>
-        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}>
+    <div
+      style={{
+        background: COLORS.bg,
+        minHeight: "100vh",
+        animation: "slideInUp 0.3s",
+      }}
+    >
+      <header
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
+          background: "rgba(255,255,255,0.8)",
+          backdropFilter: "blur(10px)",
+          display: "flex",
+          alignItems: "center",
+          padding: "12px",
+          borderBottom: `1px solid ${COLORS.cardBorder}`,
+        }}
+      >
+        <button
+          onClick={onClose}
+          style={{ background: "none", border: "none", cursor: "pointer" }}
+        >
           <Icon name="back" size={24} />
         </button>
-        <h2 style={{ margin: "0 auto", transform: "translateX(-12px)", fontSize: "1.1rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", padding: "0 10px" }}>
+        <h2
+          style={{
+            margin: "0 auto",
+            transform: "translateX(-12px)",
+            fontSize: "1.1rem",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            padding: "0 10px",
+          }}
+        >
           {hotel.name}
         </h2>
       </header>
 
       <ImageGallery />
 
-      <div style={{ padding: "0 16px", display: "flex", flexDirection: "column", gap: "16px", marginBottom: "16px" }}>
-        <div style={{ background: COLORS.card, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px" }}>
+      {/* ...コンテンツ部分は変更なし... */}
+      <div
+        style={{
+          padding: "0 16px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px",
+          marginBottom: "16px",
+        }}
+      >
+        <div
+          style={{
+            background: COLORS.card,
+            borderRadius: "12px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "16px",
+          }}
+        >
           <div style={{ flex: 1, paddingRight: "16px", overflow: "hidden" }}>
-            <h3 style={{ margin: "0 0 4px 0", fontSize: "1.1rem", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>{hotel.name}</h3>
-            <p style={{ margin: "0", color: COLORS.textSecondary, fontSize: "0.9rem" }}>{hotel.address}</p>
+            <h3
+              style={{
+                margin: "0 0 4px 0",
+                fontSize: "1.1rem",
+                whiteSpace: "nowrap",
+                textOverflow: "ellipsis",
+                overflow: "hidden",
+              }}
+            >
+              {hotel.name}
+            </h3>
+            <p
+              style={{
+                margin: "0",
+                color: COLORS.textSecondary,
+                fontSize: "0.9rem",
+              }}
+            >
+              {hotel.address}
+            </p>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", flexShrink: 0 }} onClick={handleNavigation}>
-            <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: COLORS.softAccent, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Icon name="navigation" size={24} style={{ color: COLORS.accent }} />
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+            onClick={handleNavigation}
+          >
+            <div
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "50%",
+                background: COLORS.softAccent,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Icon
+                name="navigation"
+                size={24}
+                style={{ color: COLORS.accent }}
+              />
             </div>
-            <span style={{ marginTop: "4px", fontSize: "0.8rem", color: COLORS.accent }}>ナビ</span>
+            <span
+              style={{
+                marginTop: "4px",
+                fontSize: "0.8rem",
+                color: COLORS.accent,
+              }}
+            >
+              ナビ
+            </span>
           </div>
         </div>
       </div>
@@ -500,12 +867,22 @@ function HotelDetailView({ hotel, onClose }) {
         <p>客室選択、施設詳細、アメニティ情報...</p>
       </div>
 
-      {/* 右下のVRボタン（常に表示） */}
+      {/* ===== VRボタン（常時表示） ===== */}
       <FloatingVRButton onClick={() => setVRModalOpen(true)} />
 
-      {bookingRoom && <BookingModal room={bookingRoom} hotelName={hotel.name} onClose={() => setBookingRoom(null)} />}
-      {isReviewModalOpen && <ReviewModal hotel={hotel} onClose={() => setReviewModalOpen(false)} />}
-      {isVRModalOpen && <VRConnectionModal onClose={() => setVRModalOpen(false)} />}
+      {bookingRoom && (
+        <BookingModal
+          room={bookingRoom}
+          hotelName={hotel.name}
+          onClose={() => setBookingRoom(null)}
+        />
+      )}
+      {isReviewModalOpen && (
+        <ReviewModal hotel={hotel} onClose={() => setReviewModalOpen(false)} />
+      )}
+      {isVRModalOpen && (
+        <VRConnectionModal onClose={() => setVRModalOpen(false)} />
+      )}
 
       <style>{`@keyframes slideInUp { from { transform: translateY(100%); } to { transform: translateY(0); } } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }`}</style>
     </div>
@@ -528,10 +905,17 @@ function HotelBookingApp() {
   const [promoImages, setPromoImages] = useState([]);
   const [startDate, setStartDate] = useState(() => new Date());
   const [endDate, setEndDate] = useState(() => {
-    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); return tomorrow;
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow;
   });
   const [guestCount, setGuestCount] = useState(2);
-  const [filters, setFilters] = useState({ price: { min: 0, max: 100000 }, stars: new Set(), amenities: new Set(), minRating: 0 });
+  const [filters, setFilters] = useState({
+    price: { min: 0, max: 100000 },
+    stars: new Set(),
+    amenities: new Set(),
+    minRating: 0,
+  });
   const [priceBounds, setPriceBounds] = useState({ min: 0, max: 100000 });
   const [availableAmenities, setAvailableAmenities] = useState([]);
 
@@ -541,7 +925,9 @@ function HotelBookingApp() {
     const data = values.slice(1);
     return data.map((row) => {
       const rowData = {};
-      headers.forEach((header, index) => { rowData[header] = row[index]; });
+      headers.forEach((header, index) => {
+        rowData[header] = row[index];
+      });
       return rowData;
     });
   };
@@ -560,8 +946,14 @@ function HotelBookingApp() {
       const promoSheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet2!A:A?key=${API_KEY}`;
 
       try {
-        const [hotelRes, promoRes] = await Promise.all([fetch(hotelSheetUrl), fetch(promoSheetUrl)]);
-        if (!hotelRes.ok) throw new Error(`ホテルデータの取得に失敗しました (Status: ${hotelRes.status})`);
+        const [hotelRes, promoRes] = await Promise.all([
+          fetch(hotelSheetUrl),
+          fetch(promoSheetUrl),
+        ]);
+        if (!hotelRes.ok)
+          throw new Error(
+            `ホテルデータの取得に失敗しました (Status: ${hotelRes.status})`
+          );
 
         const hotelData = await hotelRes.json();
         const hotelJson = processSheetData(hotelData.values);
@@ -570,43 +962,47 @@ function HotelBookingApp() {
           const promoData = await promoRes.json();
           setPromoImages(promoData.values.slice(1).flat().filter(Boolean));
         } else {
-          console.warn(`プロモーション画像の取得に失敗しました (Status: ${promoRes.status})`);
+          console.warn(
+            `プロモーション画像の取得に失敗しました (Status: ${promoRes.status})`
+          );
         }
 
-        let minPrice = Infinity, maxPrice = 0;
+        let minPrice = Infinity,
+          maxPrice = 0;
         const allAmenities = new Set();
 
-        const getRoomPrice = (obj, i) => {
-          // 價格i / 价格i の両対応、厳格数値化
-          return toNumberStrict(obj[`價格${i}`] ?? obj[`价格${i}`]);
-        };
-        const getPrice1Only = (obj) => {
-          return toNumberStrict(obj["價格1"] ?? obj["价格1"]);
-        };
+        // 價格來源：只看「價格1/价格1」。房型價格用「價格i/价格i」，無則回退到價格1
+        const price1Of = (obj) =>
+          toNumberStrict(obj["價格1"] ?? obj["价格1"]);
+        const roomPriceOf = (obj, i) =>
+          toNumberStrict(obj[`價格${i}`] ?? obj[`价格${i}`]);
 
         const formattedData = hotelJson
           .map((h, index) => {
-            // ===== ★★★ 価格は「價格1/价格1」だけを採用 ★★★
-            const price1 = getPrice1Only(h) ?? 0;
+            const price1 = price1Of(h) ?? 0;
             const distance = parseFloat(h["距離(KM)"]);
+
             if (price1 > 0) {
               if (price1 < minPrice) minPrice = price1;
               if (price1 > maxPrice) maxPrice = price1;
             }
 
             const amenities = h.設施列表
-              ? h.設施列表.split(";").map((item) => item.trim()).filter(Boolean)
+              ? h.設施列表
+                  .split(";")
+                  .map((item) => item.trim())
+                  .filter(Boolean)
               : [];
             amenities.forEach((a) => allAmenities.add(a));
 
             const rooms = [];
             for (let i = 1; i <= 3; i++) {
               if (h[`房型${i}`]) {
-                const roomPrice = getRoomPrice(h, i) ?? price1;
+                const rp = roomPriceOf(h, i) ?? price1;
                 rooms.push({
                   name: h[`房型${i}`],
                   maxOccupancy: parseInt(h[`最大入住人數${i}`], 10) || 2,
-                  price: roomPrice,
+                  price: rp,
                   remaining: parseInt(h[`剩餘房間數${i}`], 10) || 0,
                 });
               }
@@ -621,7 +1017,9 @@ function HotelBookingApp() {
               review_count: parseInt(h.評論數, 10) || 0,
               address: h.詳細地址,
               distance: isNaN(distance) ? Infinity : distance,
-              distance_text: h["距離(KM)"] ? `${h["距離(KM)"]}km from center` : "N/A",
+              distance_text: h["距離(KM)"]
+                ? `${h["距離(KM)"]}km from center`
+                : "N/A",
               latitude: parseFloat(h.地圖緯度),
               longitude: parseFloat(h.地圖經度),
               description: h.詳細介紹 || "<p>詳細情報はありません。</p>",
@@ -629,9 +1027,9 @@ function HotelBookingApp() {
               poster_image_url: h.詳情圖集1,
               detail_image_1: h.詳情圖集2,
               detail_image_2: h.詳情圖集3,
-              amenities,
-              price_jpy: price1, // ← ここが唯一の価格ソース
-              rooms,
+              amenities: amenities,
+              price_jpy: price1, // ★ 唯一的價格來源
+              rooms: rooms,
             };
           })
           .filter((h) => h.name);
@@ -645,7 +1043,9 @@ function HotelBookingApp() {
         setFilters((prev) => ({ ...prev, price: priceRange }));
         setAvailableAmenities(Array.from(allAmenities));
       } catch (err) {
-        setError(`データ読み込みエラー: ${err.message}. APIキーとスプレッドシートIDが正しいか、シートが一般公開されているか確認してください。`);
+        setError(
+          `データ読み込みエラー: ${err.message}. APIキーとスプレッドシートIDが正しいか、シートが一般公開されているか確認してください。`
+        );
         console.error(err);
       } finally {
         setIsLoading(false);
@@ -654,7 +1054,7 @@ function HotelBookingApp() {
     fetchData();
   }, []);
 
-  // ===== 検索・フィルタ・ソート =====
+  // ... 残りの検索・フィルタ・ソートは、price_jpy を基準に維持 ...
   useEffect(() => {
     let result = [...allHotels];
     if (selectedDestinationId !== 0) {
@@ -666,46 +1066,110 @@ function HotelBookingApp() {
         h.price_jpy <= filters.price.max &&
         (filters.stars.size === 0 || filters.stars.has(h.star_rating)) &&
         (filters.minRating === 0 || h.rating_score >= filters.minRating) &&
-        (filters.amenities.size === 0 || [...filters.amenities].every((amenity) => h.amenities.includes(amenity))) &&
-        h.rooms && h.rooms.length > 0 &&
+        (filters.amenities.size === 0 ||
+          [...filters.amenities].every((amenity) =>
+            h.amenities.includes(amenity)
+          )) &&
+        h.rooms &&
+        h.rooms.length > 0 &&
         h.rooms.some((room) => room.maxOccupancy >= guestCount)
     );
     switch (sort) {
-      case "price_asc":  result.sort((a, b) => a.price_jpy - b.price_jpy); break;
-      case "price_desc": result.sort((a, b) => b.price_jpy - a.price_jpy); break;
-      case "rating_desc": result.sort((a, b) => b.rating_score - a.rating_score); break;
-      case "distance_asc": result.sort((a, b) => a.distance - b.distance); break;
+      case "price_asc":
+        result.sort((a, b) => a.price_jpy - b.price_jpy);
+        break;
+      case "price_desc":
+        result.sort((a, b) => b.price_jpy - a.price_jpy);
+        break;
+      case "rating_desc":
+        result.sort((a, b) => b.rating_score - a.rating_score);
+        break;
+      case "distance_asc":
+        result.sort((a, b) => a.distance - b.distance);
+        break;
       default:
-        result.sort((a, b) => b.rating_score * Math.log10(b.review_count + 2) - a.rating_score * Math.log10(a.review_count + 2));
+        result.sort(
+          (a, b) =>
+            b.rating_score * Math.log10(b.review_count + 2) -
+            a.rating_score * Math.log10(a.review_count + 2)
+        );
         break;
     }
     setDisplayHotels(result);
   }, [allHotels, selectedDestinationId, filters, sort, guestCount]);
 
-  const selectedHotel = useMemo(() => allHotels.find((h) => h.id === selectedHotelId), [selectedHotelId, allHotels]);
+  const selectedHotel = useMemo(
+    () => allHotels.find((h) => h.id === selectedHotelId),
+    [selectedHotelId, allHotels]
+  );
 
-  if (isLoading) return (<div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>読み込み中...</div>);
-  if (error) return (<div style={{ padding: 40, textAlign: "center", color: "red" }}><b>エラー:</b> {error}</div>);
+  if (isLoading)
+    return (
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        読み込み中...
+      </div>
+    );
+  if (error)
+    return (
+      <div style={{ padding: 40, textAlign: "center", color: "red" }}>
+        <b>エラー:</b> {error}
+      </div>
+    );
 
   return (
-    <div style={{ background: COLORS.bg, color: COLORS.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', minHeight: "100vh" }}>
+    <div
+      style={{
+        background: COLORS.bg,
+        color: COLORS.text,
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        minHeight: "100vh",
+      }}
+    >
       <style>{`.destination-filter::-webkit-scrollbar { display: none; } .destination-filter { scrollbar-width: none; }`}</style>
       <div style={{ display: selectedHotel ? "none" : "block" }}>
         <MainPage
           {...{
-            allHotels, displayHotels, onSelectHotel: setSelectedHotelId, onShowFilters: () => setShowFilters(true),
-            sort, setSort, selectedDestinationId, onDestinationChange: setSelectedDestinationId,
-            promoImages, startDate, setStartDate, endDate, setEndDate,
+            allHotels,
+            displayHotels,
+            onSelectHotel: setSelectedHotelId,
+            onShowFilters: () => setShowFilters(true),
+            sort,
+            setSort,
+            selectedDestinationId,
+            onDestinationChange: setSelectedDestinationId,
+            promoImages,
+            startDate,
+            setStartDate,
+            endDate,
+            setEndDate,
           }}
         />
       </div>
-      {selectedHotel && <HotelDetailView hotel={selectedHotel} onClose={() => setSelectedHotelId(null)} />}
+      {selectedHotel && (
+        <HotelDetailView
+          hotel={selectedHotel}
+          onClose={() => setSelectedHotelId(null)}
+        />
+      )}
       {showFilters && (
         <FilterModal
           {...{
             onClose: () => setShowFilters(false),
             onApply: () => setShowFilters(false),
-            filters, setFilters, priceBounds, availableAmenities, guestCount, onGuestChange: setGuestCount,
+            filters,
+            setFilters,
+            priceBounds,
+            availableAmenities,
+            guestCount,
+            onGuestChange: setGuestCount,
           }}
         />
       )}
