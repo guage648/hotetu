@@ -40,6 +40,7 @@ const COLORS = {
   star: "#FFB300",
   gradient: "linear-gradient(45deg, #e53935, #d81b60)",
 };
+
 const Icon = ({ name, size = 20, className = "", style = {} }) => {
   const GradientIconWrapper = ({ id }) => (
     <svg width={0} height={0} style={{ position: "absolute" }}>
@@ -1461,6 +1462,69 @@ function VRConnectionModal({ onClose }) {
   );
 }
 
+// ✅ 修正された補助コンポーネント: ImageGallery (HotelDetailViewの外部に移動)
+function ImageGallery({ hotel, COLORS }) {
+  // 画像のURLが存在しない場合のフォールバックロジックを直接適用
+  const getImageStyle = (src) => ({
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    borderRadius: "12px",
+    backgroundColor: COLORS.cardBorder,
+  });
+
+  const ImagePlaceholder = ({ alt, src, style }) =>
+    src ? (
+      <img src={src} alt={alt} style={style} />
+    ) : (
+      <div style={style} alt={alt} />
+    );
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: "8px",
+        height: "250px",
+        padding: "16px",
+      }}
+    >
+      <div style={{ flex: 2, height: "100%" }}>
+        <ImagePlaceholder
+          src={hotel.poster_image_url}
+          alt={`${hotel.name} メインビュー`}
+          style={getImageStyle(hotel.poster_image_url)}
+        />
+      </div>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
+          height: "100%",
+        }}
+      >
+        <div style={{ flex: 1 }}>
+          <ImagePlaceholder
+            src={hotel.detail_image_1}
+            alt={`${hotel.name} 詳細ビュー1`}
+            style={getImageStyle(hotel.detail_image_1)}
+          />
+        </div>
+        <div style={{ flex: 1 }}>
+          <ImagePlaceholder
+            src={hotel.detail_image_2}
+            alt={`${hotel.name} 詳細ビュー2`}
+            style={getImageStyle(hotel.detail_image_2)}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ✅ 修正されたメインコンポーネント: HotelDetailView
 function HotelDetailView({ hotel, onClose }) {
   const [bookingRoom, setBookingRoom] = useState(null);
   const [isReviewModalOpen, setReviewModalOpen] = useState(false);
@@ -1474,11 +1538,13 @@ function HotelDetailView({ hotel, onClose }) {
     const name = hotel.name;
     let url = "amapuri://route/plan/?";
 
+    // 緯度経度がある場合はそれを優先し、ない場合は名前のみを使用
     if (lat && lon) {
       url += `dlat=${lat}&dlon=${lon}&dname=${name}&dev=0&t=0`;
     } else {
       url += `dname=${name}&dev=0&t=0`;
     }
+    // アプリがインストールされていない場合のフォールバックは実装されていません
     window.location.href = url;
   };
 
@@ -1493,68 +1559,6 @@ function HotelDetailView({ hotel, onClose }) {
     空港シャトル: "airport_shuttle",
     バー: "local_bar",
   };
-
-  const ImageWithFallback = ({ src, alt, style }) => {
-    return src ? (
-      <img src={src} alt={alt} style={style} />
-    ) : (
-      <div style={{ ...style, backgroundColor: COLORS.cardBorder }} />
-    );
-  };
-
-  const ImageGallery = () => (
-    <div
-      style={{
-        display: "flex",
-        gap: "8px",
-        height: "250px",
-        padding: "16px",
-      }}
-    >
-      <div style={{ flex: 2, height: "100%" }}>
-        <ImageWithFallback
-          src={hotel.poster_image_url}
-          alt={`${hotel.name} メインビュー`}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            borderRadius: "12px",
-          }}
-        />
-      </div>
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          gap: "8px",
-          height: "100%",
-        }}
-      >
-        <ImageWithFallback
-          src={hotel.detail_image_1}
-          alt={`${hotel.name} 詳細ビュー1`}
-          style={{
-            width: "100%",
-            height: "50%",
-            objectFit: "cover",
-            borderRadius: "12px",
-          }}
-        />
-        <ImageWithFallback
-          src={hotel.detail_image_2}
-          alt={`${hotel.name} 詳細ビュー2`}
-          style={{
-            width: "100%",
-            height: "50%",
-            objectFit: "cover",
-            borderRadius: "12px",
-          }}
-        />
-      </div>
-    </div>
-  );
 
   return (
     <div
@@ -1598,7 +1602,8 @@ function HotelDetailView({ hotel, onClose }) {
         </h2>
       </header>
 
-      <ImageGallery />
+      {/* ImageGalleryの修正版を呼び出し */}
+      <ImageGallery hotel={hotel} COLORS={COLORS} />
 
       <div
         style={{
@@ -1609,6 +1614,7 @@ function HotelDetailView({ hotel, onClose }) {
           marginBottom: "16px",
         }}
       >
+        {/* ホテル名/住所/ナビゲーションセクション */}
         <div
           style={{
             background: COLORS.card,
@@ -1617,11 +1623,10 @@ function HotelDetailView({ hotel, onClose }) {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "16px",
+            textAlign: "left", // 左揃え
           }}
         >
-          <div
-            style={{ flex: 1, paddingRight: "16px", overflow: "hidden" }}
-          >
+          <div style={{ flex: 1, paddingRight: "16px", overflow: "hidden" }}>
             <h3
               style={{
                 margin: "0 0 4px 0",
@@ -1673,11 +1678,12 @@ function HotelDetailView({ hotel, onClose }) {
             <span
               style={{ marginTop: "4px", fontSize: "0.8rem", color: COLORS.accent }}
             >
-              导航
+              ナビゲーション
             </span>
           </div>
         </div>
 
+        {/* VR看房セクション */}
         <div
           onClick={() => setVRModalOpen(true)}
           style={{
@@ -1688,6 +1694,7 @@ function HotelDetailView({ hotel, onClose }) {
             padding: "16px",
             cursor: "pointer",
             boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+            textAlign: "left", // 左揃え
           }}
         >
           <div
@@ -1709,7 +1716,7 @@ function HotelDetailView({ hotel, onClose }) {
                 color: COLORS.textSecondary,
               }}
             >
-              沉浸式体验房间细节
+              沈浸式體驗房間細節
             </p>
           </div>
           <span style={{ fontSize: "1.2rem", color: COLORS.textSecondary }}>
@@ -1719,7 +1726,9 @@ function HotelDetailView({ hotel, onClose }) {
       </div>
 
       <div style={{ padding: "0 16px 16px 16px" }}>
-        <h3 style={{ margin: "16px 0 12px 0" }}>部屋タイプを選択</h3>
+        <h3 style={{ margin: "16px 0 12px 0", textAlign: "left" }}>
+          部屋タイプを選択
+        </h3>
         <div
           style={{
             display: "flex",
@@ -1740,6 +1749,7 @@ function HotelDetailView({ hotel, onClose }) {
                   justifyContent: "space-between",
                   alignItems: "center",
                   boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                  textAlign: "left", // 左揃え
                 }}
               >
                 <div>
@@ -1783,6 +1793,7 @@ function HotelDetailView({ hotel, onClose }) {
                     cursor: "pointer",
                     opacity: room.remaining === 0 ? 0.5 : 1,
                     fontWeight: "bold",
+                    flexShrink: 0,
                   }}
                 >
                   {room.remaining > 0 ? "予約" : "満室"}
@@ -1795,19 +1806,21 @@ function HotelDetailView({ hotel, onClose }) {
                 background: COLORS.card,
                 padding: "16px",
                 borderRadius: 12,
+                textAlign: "left", // 左揃え
               }}
             >
               <p>現在利用可能な部屋タイプはありません。</p>
             </div>
           )}
         </div>
-        <h3 style={{ margin: "0 0 12px 0" }}>ホテル詳細</h3>
+        <h3 style={{ margin: "0 0 12px 0", textAlign: "left" }}>ホテル詳細</h3>
         <div
           style={{
             background: COLORS.card,
             padding: "16px",
             borderRadius: 12,
             marginBottom: 24,
+            textAlign: "left", // 左揃え
           }}
         >
           <div
@@ -1837,6 +1850,7 @@ function HotelDetailView({ hotel, onClose }) {
                 color: COLORS.accent,
                 cursor: "pointer",
                 fontWeight: "bold",
+                flexShrink: 0,
               }}
             >
               すべて表示 &gt;
@@ -1849,7 +1863,9 @@ function HotelDetailView({ hotel, onClose }) {
         </div>
         {hotel.amenities && hotel.amenities.length > 0 && (
           <>
-            <h3 style={{ margin: "0 0 12px 0" }}>設備とサービス</h3>
+            <h3 style={{ margin: "0 0 12px 0", textAlign: "left" }}>
+              設備とサービス
+            </h3>
             <div
               style={{
                 display: "grid",
@@ -1858,6 +1874,7 @@ function HotelDetailView({ hotel, onClose }) {
                 background: COLORS.card,
                 padding: "16px",
                 borderRadius: 12,
+                textAlign: "center", // 要素自体は中央寄せだが、リストはグリッド
               }}
             >
               {hotel.amenities.map((amenity) => (
