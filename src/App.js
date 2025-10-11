@@ -108,9 +108,7 @@ const Icon = ({ name, size = 20, className = "", style = {} }) => {
     local_bar: (
       <path d="M21 5V3H3v2l8 9v5H6v2h12v-2h-5v-5l8-9zM7.43 7L5.66 5h12.69l-1.78 2H7.43z" />
     ),
-    navigation: (
-      <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" />
-    ),
+    navigation: <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" />,
     vr: (
       <path d="M20.59 6.21C19.82 5.45 18.72 5 17.5 5H10c-1.22 0-2.32.45-3.09 1.21L5.5 7.62l1.41 1.41L8.32 7.62c.4-.4 1-.62 1.68-.62h7.5c.68 0 1.28.22 1.68.62l1.41 1.41 1.41-1.41-1.41-1.41zM18 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zM6 10.5c-.83 0-1.5.67-1.5 1.5S5.17 13.5 6 13.5s1.5-.67 1.5-1.5S6.83 10.5 6 10.5zM21 15.58c-1.11-1.11-2.69-1.58-4.24-1.58H7.24c-1.55 0-3.13.47-4.24 1.58L3 15.58V18h18v-2.42l-.01.01z" />
     ),
@@ -1204,16 +1202,18 @@ const generateFakeReviews = (count, averageRating) => {
     for (let j = 0; j < commentLength; j++) {
       if (rating >= 8.5) {
         comment +=
-          positiveSnippets[Math.floor(Math.random() * positiveSnippets.length)] +
-          " ";
+          positiveSnippets[
+            Math.floor(Math.random() * positiveSnippets.length)
+          ] + " ";
       } else if (rating >= 6.5) {
         comment +=
           neutralSnippets[Math.floor(Math.random() * neutralSnippets.length)] +
           " ";
       } else {
         comment +=
-          negativeSnippets[Math.floor(Math.random() * negativeSnippets.length)] +
-          " ";
+          negativeSnippets[
+            Math.floor(Math.random() * negativeSnippets.length)
+          ] + " ";
       }
     }
     const date = new Date();
@@ -1240,7 +1240,12 @@ function ReviewModal({ hotel, onClose }) {
     return (
       <div>
         {[...Array(fullStars)].map((_, i) => (
-          <Icon key={`f-${i}`} name="star" size={16} style={{ color: COLORS.star }} />
+          <Icon
+            key={`f-${i}`}
+            name="star"
+            size={16}
+            style={{ color: COLORS.star }}
+          />
         ))}
         {[...Array(emptyStars)].map((_, i) => (
           <Icon
@@ -1462,69 +1467,77 @@ function VRConnectionModal({ onClose }) {
   );
 }
 
-// ✅ 修正された補助コンポーネント: ImageGallery (HotelDetailViewの外部に移動)
-function ImageGallery({ hotel, COLORS }) {
-  // 画像のURLが存在しない場合のフォールバックロジックを直接適用
-  const getImageStyle = (src) => ({
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    borderRadius: "12px",
-    backgroundColor: COLORS.cardBorder,
-  });
-
-  const ImagePlaceholder = ({ alt, src, style }) =>
+// ===== ▼▼▼ ここを修正しました (Here's the corrected part) ▼▼▼ =====
+// グリッドレイアウトを使用して、レスポンシブで整った画像ギャラリーを作成しました。
+// また、画像がない場合に備えてプレースホルダーを表示するロジックも維持しています。
+function ImageGallery({ hotel }) {
+  // 画像がない場合に備えたプレースホルダーコンポーネント
+  const ImagePlaceholder = ({ src, alt, style }) =>
     src ? (
       <img src={src} alt={alt} style={style} />
     ) : (
-      <div style={style} alt={alt} />
+      <div style={{ ...style, backgroundColor: COLORS.cardBorder }} />
     );
+
+  // すべての画像に適用する共通スタイル
+  const imageStyle = {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover", // アスペクト比を維持しつつコンテナを埋める
+    display: "block",
+  };
 
   return (
     <div
       style={{
-        display: "flex",
+        display: "grid",
+        // 左の列(2fr)は右の列(1fr)の2倍の幅を持つ
+        gridTemplateColumns: "2fr 1fr",
+        // 2つの均等な高さの行を作成
+        gridTemplateRows: "repeat(2, 1fr)",
         gap: "8px",
-        height: "250px",
+        height: "220px", // 高さを固定
         padding: "16px",
+        boxSizing: "border-box", // paddingを高さに含める
       }}
     >
-      <div style={{ flex: 2, height: "100%" }}>
+      {/* 左側のメイン画像 (2行を占める) */}
+      <div
+        style={{
+          gridRow: "1 / span 2",
+          borderRadius: "12px",
+          overflow: "hidden", // 角丸を適用するために必要
+        }}
+      >
         <ImagePlaceholder
           src={hotel.poster_image_url}
           alt={`${hotel.name} メインビュー`}
-          style={getImageStyle(hotel.poster_image_url)}
+          style={imageStyle}
         />
       </div>
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          gap: "8px",
-          height: "100%",
-        }}
-      >
-        <div style={{ flex: 1 }}>
-          <ImagePlaceholder
-            src={hotel.detail_image_1}
-            alt={`${hotel.name} 詳細ビュー1`}
-            style={getImageStyle(hotel.detail_image_1)}
-          />
-        </div>
-        <div style={{ flex: 1 }}>
-          <ImagePlaceholder
-            src={hotel.detail_image_2}
-            alt={`${hotel.name} 詳細ビュー2`}
-            style={getImageStyle(hotel.detail_image_2)}
-          />
-        </div>
+
+      {/* 右上の画像 */}
+      <div style={{ borderRadius: "12px", overflow: "hidden" }}>
+        <ImagePlaceholder
+          src={hotel.detail_image_1}
+          alt={`${hotel.name} 詳細ビュー1`}
+          style={imageStyle}
+        />
+      </div>
+
+      {/* 右下の画像 */}
+      <div style={{ borderRadius: "12px", overflow: "hidden" }}>
+        <ImagePlaceholder
+          src={hotel.detail_image_2}
+          alt={`${hotel.name} 詳細ビュー2`}
+          style={imageStyle}
+        />
       </div>
     </div>
   );
 }
+// ===== ▲▲▲ ここまで修正 (End of correction) ▲▲▲ =====
 
-// ✅ 修正されたメインコンポーネント: HotelDetailView
 function HotelDetailView({ hotel, onClose }) {
   const [bookingRoom, setBookingRoom] = useState(null);
   const [isReviewModalOpen, setReviewModalOpen] = useState(false);
@@ -1538,13 +1551,11 @@ function HotelDetailView({ hotel, onClose }) {
     const name = hotel.name;
     let url = "amapuri://route/plan/?";
 
-    // 緯度経度がある場合はそれを優先し、ない場合は名前のみを使用
     if (lat && lon) {
       url += `dlat=${lat}&dlon=${lon}&dname=${name}&dev=0&t=0`;
     } else {
       url += `dname=${name}&dev=0&t=0`;
     }
-    // アプリがインストールされていない場合のフォールバックは実装されていません
     window.location.href = url;
   };
 
@@ -1602,8 +1613,8 @@ function HotelDetailView({ hotel, onClose }) {
         </h2>
       </header>
 
-      {/* ImageGalleryの修正版を呼び出し */}
-      <ImageGallery hotel={hotel} COLORS={COLORS} />
+      {/* 修正版のImageGalleryを呼び出し (不要なCOLORSプロップを削除) */}
+      <ImageGallery hotel={hotel} />
 
       <div
         style={{
@@ -1623,7 +1634,7 @@ function HotelDetailView({ hotel, onClose }) {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "16px",
-            textAlign: "left", // 左揃え
+            textAlign: "left",
           }}
         >
           <div style={{ flex: 1, paddingRight: "16px", overflow: "hidden" }}>
@@ -1676,7 +1687,11 @@ function HotelDetailView({ hotel, onClose }) {
               />
             </div>
             <span
-              style={{ marginTop: "4px", fontSize: "0.8rem", color: COLORS.accent }}
+              style={{
+                marginTop: "4px",
+                fontSize: "0.8rem",
+                color: COLORS.accent,
+              }}
             >
               ナビゲーション
             </span>
@@ -1694,7 +1709,7 @@ function HotelDetailView({ hotel, onClose }) {
             padding: "16px",
             cursor: "pointer",
             boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-            textAlign: "left", // 左揃え
+            textAlign: "left",
           }}
         >
           <div
@@ -1749,7 +1764,7 @@ function HotelDetailView({ hotel, onClose }) {
                   justifyContent: "space-between",
                   alignItems: "center",
                   boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-                  textAlign: "left", // 左揃え
+                  textAlign: "left",
                 }}
               >
                 <div>
@@ -1773,9 +1788,7 @@ function HotelDetailView({ hotel, onClose }) {
                     }}
                   >
                     {room.price.toLocaleString()}円{" "}
-                    <span
-                      style={{ fontSize: "0.8rem", fontWeight: "normal" }}
-                    >
+                    <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>
                       {" "}
                       / 泊{" "}
                     </span>
@@ -1806,7 +1819,7 @@ function HotelDetailView({ hotel, onClose }) {
                 background: COLORS.card,
                 padding: "16px",
                 borderRadius: 12,
-                textAlign: "left", // 左揃え
+                textAlign: "left",
               }}
             >
               <p>現在利用可能な部屋タイプはありません。</p>
@@ -1820,7 +1833,7 @@ function HotelDetailView({ hotel, onClose }) {
             padding: "16px",
             borderRadius: 12,
             marginBottom: 24,
-            textAlign: "left", // 左揃え
+            textAlign: "left",
           }}
         >
           <div
@@ -1874,7 +1887,7 @@ function HotelDetailView({ hotel, onClose }) {
                 background: COLORS.card,
                 padding: "16px",
                 borderRadius: 12,
-                textAlign: "center", // 要素自体は中央寄せだが、リストはグリッド
+                textAlign: "center",
               }}
             >
               {hotel.amenities.map((amenity) => (
@@ -1994,13 +2007,10 @@ function HotelBookingApp() {
         if (promoRes.ok) {
           const promoData = await promoRes.json();
           const promoJson = processSheetData(promoData.values);
-          // ===== ▼▼▼ 修正箇所 ▼▼▼ =====
-          // Sheet2から取得した画像URLを最初の3つに限定します。
           const imageUrls = promoJson
             .map((row) => row["首頁輪播圖片url"])
             .filter(Boolean)
             .slice(0, 3);
-          // ===== ▲▲▲ 修正箇所 ▲▲▲ =====
           setPromoImages(imageUrls);
         } else {
           console.warn(
