@@ -16,12 +16,12 @@ const SPREADSHEET_ID = "1-JYNZ9XSx2wAfBSOoKQHvAkilmGM3YYwjWIDvUb9mzw";
 
 const DESTINATIONS = [
   { id: 0, name: "すべて" },
-  { id: 1, name: "蒼穹の門" },
-  { id: 2, name: "暁風港" },
-  { id: 3, name: "流星の跡" },
-  { id: 4, name: "未知なる城" },
-  { id: 5, name: "光の道" },
-  { id: 6, name: "霞光ステーション" },
+  { id: 1, name: "梅中駅" },
+  { id: 2, name: "河清南駅" },
+  { id: 3, name: "海晏北駅" },
+  { id: 4, name: "墨河屯駅" },
+  { id: 5, name: "松崖関駅" },
+  { id: 6, name: "上広駅" },
 ];
 
 // =======================================================================
@@ -982,18 +982,19 @@ function FilterModal({
   );
 }
 
+// ===== ▼▼▼ ここを修正しました (Here's the corrected part) ▼▼▼ =====
+// 支払いフォームを削除し、ローディングと成功画面を実装
 function BookingModal({ room, hotelName, onClose }) {
-  const [step, setStep] = useState(1);
-  const [guestName, setGuestName] = useState("");
-  const [guestContact, setGuestContact] = useState("");
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (guestName && guestContact) {
-      setStep(2);
-    } else {
-      alert("すべての必須項目を入力してください。");
-    }
+  // 'idle' = 予約情報表示, 'loading' = 処理中, 'success' = 予約完了
+  const [status, setStatus] = useState("idle");
+
+  const handleConfirmBooking = () => {
+    setStatus("loading");
+    setTimeout(() => {
+      setStatus("success");
+    }, 1000); // 1秒間のローディング
   };
+
   return (
     <div
       style={{
@@ -1024,16 +1025,28 @@ function BookingModal({ room, hotelName, onClose }) {
             alignItems: "center",
           }}
         >
-          <h3 style={{ margin: 0 }}>{step === 1 ? "予約情報" : "予約完了"}</h3>
+          <h3 style={{ margin: 0 }}>
+            {status === "idle" && "予約情報"}
+            {status === "loading" && "予約処理中"}
+            {status === "success" && "予約完了"}
+          </h3>
           <button
             onClick={onClose}
-            style={{ background: "none", border: "none", cursor: "pointer" }}
+            disabled={status === "loading"} // ローディング中は閉じさせない
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              opacity: status === "loading" ? 0.2 : 1,
+            }}
           >
             <Icon name="close" size={24} />
           </button>
         </header>
-        {step === 1 && (
-          <form onSubmit={handleSubmit}>
+
+        {/* --- 予約情報表示 (Step 1) --- */}
+        {status === "idle" && (
+          <div>
             <div style={{ padding: "16px" }}>
               <p>
                 <strong>ホテル:</strong> {hotelName}
@@ -1047,54 +1060,16 @@ function BookingModal({ room, hotelName, onClose }) {
                   {room.price.toLocaleString()}円 / 泊
                 </span>
               </p>
-              <div style={{ marginTop: 16 }}>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: 4,
-                    fontSize: "0.9rem",
-                  }}
-                >
-                  宿泊者名
-                </label>
-                <input
-                  type="text"
-                  value={guestName}
-                  onChange={(e) => setGuestName(e.target.value)}
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "8px",
-                    boxSizing: "border-box",
-                    borderRadius: 8,
-                    border: `1px solid ${COLORS.cardBorder}`,
-                  }}
-                />
-              </div>
-              <div style={{ marginTop: 16 }}>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: 4,
-                    fontSize: "0.9rem",
-                  }}
-                >
-                  連絡先 (電話番号/メールアドレス)
-                </label>
-                <input
-                  type="text"
-                  value={guestContact}
-                  onChange={(e) => setGuestContact(e.target.value)}
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "8px",
-                    boxSizing: "border-box",
-                    borderRadius: 8,
-                    border: `1px solid ${COLORS.cardBorder}`,
-                  }}
-                />
-              </div>
+              <p
+                style={{
+                  fontSize: "0.8rem",
+                  color: COLORS.textSecondary,
+                  marginTop: "16px",
+                }}
+              >
+                「予約を確定する」ボタンを押すと、予約が完了します。
+                (デモ版のため、個人情報の入力は省略されています)
+              </p>
             </div>
             <footer
               style={{
@@ -1103,7 +1078,7 @@ function BookingModal({ room, hotelName, onClose }) {
               }}
             >
               <button
-                type="submit"
+                onClick={handleConfirmBooking}
                 style={{
                   width: "100%",
                   padding: "14px",
@@ -1115,19 +1090,46 @@ function BookingModal({ room, hotelName, onClose }) {
                   cursor: "pointer",
                 }}
               >
-                支払いに進む
+                予約を確定する
               </button>
             </footer>
-          </form>
+          </div>
         )}
-        {step === 2 && (
+
+        {/* --- ローディング中 --- */}
+        {status === "loading" && (
+          <div style={{ padding: "32px 16px", textAlign: "center" }}>
+            <p style={{ fontSize: "1rem", color: COLORS.textSecondary }}>
+              予約を処理中です...
+            </p>
+            {/* ここにCSSスピナーなどを追加することも可能です */}
+          </div>
+        )}
+
+        {/* --- 予約完了 (Step 2) --- */}
+        {status === "success" && (
           <div>
             <div style={{ padding: "32px 16px", textAlign: "center" }}>
-              <Icon name="check" size={48} style={{ color: "#4CAF50" }} />
-              <h4 style={{ marginTop: 16 }}>お支払い完了！</h4>
+              <img
+                src="https://free.picui.cn/free/2025/10/10/68e8f7f633108.png"
+                alt="予約成功"
+                style={{
+                  width: "100px",
+                  height: "100px",
+                  margin: "0 auto 16px",
+                }}
+              />
+              <p
+                style={{
+                  color: COLORS.text,
+                  fontSize: "1rem",
+                  fontWeight: "bold",
+                }}
+              >
+                予約が完了しました。
+              </p>
               <p style={{ color: COLORS.textSecondary, fontSize: "0.9rem" }}>
-                {hotelName} - {room.name}{" "}
-                の予約が完了しました。予約詳細はご指定の連絡先にお送りしました。
+                詳細はメールをご確認ください。
               </p>
             </div>
             <footer
@@ -1158,19 +1160,62 @@ function BookingModal({ room, hotelName, onClose }) {
     </div>
   );
 }
+// ===== ▲▲▲ ここまで修正 (End of correction) ▲▲▲ =====
 
 const generateFakeReviews = (count, averageRating) => {
   const usernames = [
-    "Kenji S.",
-    "Yuki T.",
-    "Haruto N.",
-    "Mei A.",
-    "Ren K.",
+    "あいか",
+    "RyoTokyo",
+    "みゆう",
+    "Takumi",
+    "旅人2025",
+    "みさき",
+    "ゆうきの旅",
     "Anonymous",
-    "Traveler2025",
-    "美食家",
-    "家族旅行者",
+    "Hina07",
+    "けんじ",
+    "Sora",
+    "Aya_travel",
+    "りょうた",
+    "ShunJP",
+    "Kaori_in_Japan",
+    "なつき",
+    "Kenta_JP",
+    "りく",
+    "Reina_T",
+    "Airi",
+    "まこと",
+    "KouTraveler",
+    "はると",
+    "nana_jp",
+    "Nao_Tokyo",
+    "りな",
+    "TomoK",
+    "Yui",
+    "AnonymousUser",
+    "あおい",
+    "Haru_Japan",
+    "みどり",
+    "MikaLove",
+    "ゆき",
+    "美食探検隊",
+    "りょう",
+    "RinaTravel",
+    "minami__",
+    "さとる",
+    "AkiraTravelers",
+    "RyoJP",
+    "あやの",
+    "KazuVlog",
+    "匿名さん",
+    "ちひろ",
+    "Hiroshi88",
+    "Ami",
+    "RenK",
+    "MeiA",
+    "Traveler2025"
   ];
+
   const positiveSnippets = [
     "素晴らしい景色でした！",
     "スタッフの対応がとても丁寧で感動しました。",
@@ -1467,9 +1512,6 @@ function VRConnectionModal({ onClose }) {
   );
 }
 
-// ===== ▼▼▼ ここを修正しました (Here's the corrected part) ▼▼▼ =====
-// グリッドレイアウトを使用して、レスポンシブで整った画像ギャラリーを作成しました。
-// また、画像がない場合に備えてプレースホルダーを表示するロジックも維持しています。
 function ImageGallery({ hotel }) {
   // 画像がない場合に備えたプレースホルダーコンポーネント
   const ImagePlaceholder = ({ src, alt, style }) =>
@@ -1536,7 +1578,6 @@ function ImageGallery({ hotel }) {
     </div>
   );
 }
-// ===== ▲▲▲ ここまで修正 (End of correction) ▲▲▲ =====
 
 function HotelDetailView({ hotel, onClose }) {
   const [bookingRoom, setBookingRoom] = useState(null);
@@ -1698,7 +1739,7 @@ function HotelDetailView({ hotel, onClose }) {
           </div>
         </div>
 
-        {/* VR看房セクション */}
+        {/* VR内見セクション */}
         <div
           onClick={() => setVRModalOpen(true)}
           style={{
@@ -1723,7 +1764,7 @@ function HotelDetailView({ hotel, onClose }) {
             <Icon name="vr" size={28} style={{ color: COLORS.accent }} />
           </div>
           <div style={{ flex: 1 }}>
-            <h4 style={{ margin: "0 0 4px 0", fontWeight: 600 }}>VR看房</h4>
+            <h4 style={{ margin: "0 0 4px 0", fontWeight: 600 }}>VR内見</h4>
             <p
               style={{
                 margin: 0,
@@ -1731,7 +1772,7 @@ function HotelDetailView({ hotel, onClose }) {
                 color: COLORS.textSecondary,
               }}
             >
-              沈浸式體驗房間細節
+              没入型体験ルームの詳細
             </p>
           </div>
           <span style={{ fontSize: "1.2rem", color: COLORS.textSecondary }}>
