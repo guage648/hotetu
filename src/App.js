@@ -682,7 +682,7 @@ function HotelList({ hotels, onSelect }) {
 
 function MainPage({
   allHotels,
-  displayHotels,
+  displayHotELS,
   onSelectHotel,
   onShowFilters,
   sort,
@@ -983,16 +983,23 @@ function FilterModal({
 }
 
 // ===== ▼▼▼ ここを修正しました (Here's the corrected part) ▼▼▼ =====
-// 支払いフォームを削除し、ローディングと成功画面を実装
+// フォーム入力を復活させ、ローディング時間を2秒に変更
 function BookingModal({ room, hotelName, onClose }) {
-  // 'idle' = 予約情報表示, 'loading' = 処理中, 'success' = 予約完了
-  const [status, setStatus] = useState("idle");
+  // 'form' = フォーム入力, 'loading' = 処理中, 'success' = 予約完了
+  const [status, setStatus] = useState("form");
+  const [guestName, setGuestName] = useState("");
+  const [guestContact, setGuestContact] = useState("");
 
-  const handleConfirmBooking = () => {
-    setStatus("loading");
-    setTimeout(() => {
-      setStatus("success");
-    }, 1000); // 1秒間のローディング
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (guestName && guestContact) {
+      setStatus("loading");
+      setTimeout(() => {
+        setStatus("success");
+      }, 2000); // ご要望の通り2秒間に設定
+    } else {
+      alert("すべての必須項目を入力してください。");
+    }
   };
 
   return (
@@ -1026,7 +1033,7 @@ function BookingModal({ room, hotelName, onClose }) {
           }}
         >
           <h3 style={{ margin: 0 }}>
-            {status === "idle" && "予約情報"}
+            {status === "form" && "予約情報"}
             {status === "loading" && "予約処理中"}
             {status === "success" && "予約完了"}
           </h3>
@@ -1044,9 +1051,9 @@ function BookingModal({ room, hotelName, onClose }) {
           </button>
         </header>
 
-        {/* --- 予約情報表示 (Step 1) --- */}
-        {status === "idle" && (
-          <div>
+        {/* --- フォーム入力 (Step 1) --- */}
+        {status === "form" && (
+          <form onSubmit={handleSubmit}>
             <div style={{ padding: "16px" }}>
               <p>
                 <strong>ホテル:</strong> {hotelName}
@@ -1060,16 +1067,54 @@ function BookingModal({ room, hotelName, onClose }) {
                   {room.price.toLocaleString()}円 / 泊
                 </span>
               </p>
-              <p
-                style={{
-                  fontSize: "0.8rem",
-                  color: COLORS.textSecondary,
-                  marginTop: "16px",
-                }}
-              >
-                「予約を確定する」ボタンを押すと、予約が完了します。
-                (デモ版のため、個人情報の入力は省略されています)
-              </p>
+              <div style={{ marginTop: 16 }}>
+                <label
+                  style={{
+                    display: "block",
+                    marginBottom: 4,
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  宿泊者名
+                </label>
+                <input
+                  type="text"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  required
+                  style={{
+                    width: "100%",
+                    padding: "8px",
+                    boxSizing: "border-box",
+                    borderRadius: 8,
+                    border: `1px solid ${COLORS.cardBorder}`,
+                  }}
+                />
+              </div>
+              <div style={{ marginTop: 16 }}>
+                <label
+                  style={{
+                    display: "block",
+                    marginBottom: 4,
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  連絡先 (電話番号/メールアドレス)
+                </label>
+                <input
+                  type="text"
+                  value={guestContact}
+                  onChange={(e) => setGuestContact(e.target.value)}
+                  required
+                  style={{
+                    width: "100%",
+                    padding: "8px",
+                    boxSizing: "border-box",
+                    borderRadius: 8,
+                    border: `1px solid ${COLORS.cardBorder}`,
+                  }}
+                />
+              </div>
             </div>
             <footer
               style={{
@@ -1078,7 +1123,7 @@ function BookingModal({ room, hotelName, onClose }) {
               }}
             >
               <button
-                onClick={handleConfirmBooking}
+                type="submit"
                 style={{
                   width: "100%",
                   padding: "14px",
@@ -1090,10 +1135,10 @@ function BookingModal({ room, hotelName, onClose }) {
                   cursor: "pointer",
                 }}
               >
-                予約を確定する
+                支払いに進む
               </button>
             </footer>
-          </div>
+          </form>
         )}
 
         {/* --- ローディング中 --- */}
@@ -1697,7 +1742,8 @@ function HotelDetailView({ hotel, onClose }) {
                 fontSize: "0.9rem",
               }}
             >
-              {hotel.address}
+              {hotel.address}{" "}
+              {/* ご要望に基づき、住所は翻訳せずそのまま表示します */}
             </p>
           </div>
           <div
