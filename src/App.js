@@ -680,9 +680,11 @@ function HotelList({ hotels, onSelect }) {
   );
 }
 
+// ===== ▼▼▼ ここを修正しました (Here's the corrected part) ▼▼▼ =====
+// "displayHotELS" を "displayHotels" に修正しました
 function MainPage({
   allHotels,
-  displayHotELS,
+  displayHotels,
   onSelectHotel,
   onShowFilters,
   sort,
@@ -728,6 +730,7 @@ function MainPage({
     </main>
   );
 }
+// ===== ▲▲▲ ここまで修正 (End of correction) ▲▲▲ =====
 
 function FilterModal({
   onClose,
@@ -982,8 +985,6 @@ function FilterModal({
   );
 }
 
-// ===== ▼▼▼ ここを修正しました (Here's the corrected part) ▼▼▼ =====
-// フォーム入力を復活させ、ローディング時間を2秒に変更
 function BookingModal({ room, hotelName, onClose }) {
   // 'form' = フォーム入力, 'loading' = 処理中, 'success' = 予約完了
   const [status, setStatus] = useState("form");
@@ -1205,7 +1206,6 @@ function BookingModal({ room, hotelName, onClose }) {
     </div>
   );
 }
-// ===== ▲▲▲ ここまで修正 (End of correction) ▲▲▲ =====
 
 const generateFakeReviews = (count, averageRating) => {
   const usernames = [
